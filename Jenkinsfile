@@ -1,19 +1,35 @@
 pipeline {
-
     agent any
 
     stages {
-
         stage('Build') {
-
             steps {
-                sh 'g++ pes1ug21cs383.cpp -o output' // Replace with your actual deployment commands
+                script {
+                    try {
+                        // Compile the new.cpp file
+                        sh 'g++ new.cpp -o output'
+                        
+                        // Trigger the 'pes1ug21cs383-1' Jenkins job (assumed it exists)
+                        build job: 'pes1ug21cs383-1'
+                    } catch (Exception e) {
+                        currentBuild.result = 'FAILURE'
+                        error "Build failed: ${e.message}"
+                    }
+                }
             }
         }
 
         stage('Test') {
             steps {
-                sh './output'
+                script {
+                    try {
+                        // Print output of the compiled C++ program
+                        sh './output'
+                    } catch (Exception e) {
+                        currentBuild.result = 'FAILURE'
+                        error "Test failed: ${e.message}"
+                    }
+                }
             }
         }
 
@@ -26,7 +42,8 @@ pipeline {
 
     post {
         failure {
-            error 'Pipeline failed'
+            echo 'Pipeline failed'
         }
     }
 }
+
